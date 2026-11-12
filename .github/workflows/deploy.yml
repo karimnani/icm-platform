@@ -130,7 +130,7 @@ jobs:
       - name: Déployer le Worker
         id: worker
         if: needs.prepare.outputs.worker == 'true'
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -145,7 +145,7 @@ jobs:
 
       - name: Déployer l'application (Cloudflare Pages)
         if: needs.prepare.outputs.web == 'true'
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

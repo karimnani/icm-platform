@@ -54,7 +54,7 @@ jobs:
         working-directory: ${{ env.APP_DIR }}
         run: node scripts/stamp-sw.mjs "$(git rev-parse HEAD)" web/sw.js
 
-      - uses: cloudflare/wrangler-action@v3
+      - uses: cloudflare/wrangler-action@v4
         if: inputs.ref != ''
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
