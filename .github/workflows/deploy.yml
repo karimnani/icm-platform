@@ -50,7 +50,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with: { node-version: 22 }
 
       - name: Secrets et variables requis
@@ -117,7 +117,7 @@ jobs:
       D1_DATABASE: ${{ vars.D1_DATABASE }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with: { node-version: 22 }
 
       # ④a — la base d'abord : les migrations sont additives, l'ancien Worker continue donc de fonctionner pendant la bascule.
