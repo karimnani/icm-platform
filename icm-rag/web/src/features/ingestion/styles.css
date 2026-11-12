@@ -1,0 +1,24 @@
+/* Styles isolés : tout est préfixé .icm-ingest / .ii-* pour ne jamais perturber l'application hôte. */
+.icm-ingest{font:15px system-ui,sans-serif;color:#1f2933;display:flex;flex-direction:column;gap:20px}
+.icm-ingest *{box-sizing:border-box}
+.icm-ingest .ii-card{background:#fff;border:1px solid #dde2e8;border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.icm-ingest .ii-title{font-size:16px;margin:0;color:#034d8f}
+.icm-ingest .ii-label{font-weight:600;font-size:13px;display:flex;flex-direction:column;gap:4px}
+.icm-ingest .ii-input{font:inherit;padding:10px 12px;border:1px solid #c9d1da;border-radius:8px;background:#fff;color:inherit}
+.icm-ingest .ii-btn{font:inherit;padding:10px 12px;border:none;border-radius:8px;background:#034d8f;color:#fff;font-weight:600;cursor:pointer}
+.icm-ingest .ii-btn:disabled{opacity:.5}
+.icm-ingest .ii-btn-sec{background:#fff;color:#1f2933;border:1px solid #c9d1da}
+.icm-ingest .ii-btn-del{background:#dc2626;padding:6px 12px;font-size:13px;border-radius:6px}
+.icm-ingest .ii-btn-del:hover{background:#b91c1c}
+.icm-ingest .ii-btn-purge{background:#7f1d1d;padding:6px 14px;font-size:13px;border-radius:6px}
+.icm-ingest .ii-btn-purge:hover{background:#991b1b}
+.icm-ingest .ii-table td,.icm-ingest .ii-table th{white-space:normal}
+.icm-ingest .ii-table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+.icm-ingest .ii-table th,.icm-ingest .ii-table td{padding:10px;text-align:left;border-bottom:1px solid #e2e8f0}
+.icm-ingest .ii-table th{color:#64748b;font-weight:600;font-size:12px;text-transform:uppercase}
+.icm-ingest .ii-out{background:#0f172a;color:#d1e7ff;padding:12px;border-radius:8px;white-space:pre-wrap;word-break:break-word;margin:0;font-size:13px;min-height:20px}
+.icm-ingest .ii-hint{font-size:13px;color:#5b6675;margin:0}
+.icm-ingest .ii-formats{display:flex;gap:8px;align-items:center;margin-top:4px}
+.icm-ingest .ii-badge{background:#e2e8f0;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;color:#475569}
+.icm-ingest .ii-btn-group{display:flex;gap:8px;align-items:center}
+.icm-ingest .ii-error{color:#dc2626;font-size:13px}

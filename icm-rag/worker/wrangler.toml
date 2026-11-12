@@ -1,0 +1,37 @@
+# MODÈLE : gardez votre wrangler.toml actuel, seul `main` change (src/index.js).
+name = "icm-maser"
+main = "src/index.js"
+compatibility_date = "2024-09-23"
+
+[ai]
+binding = "AI"            # le code accepte aussi env.IA
+
+[[vectorize]]
+binding = "VECTORIZE"
+index_name = "icm-docs"
+
+# Base relationnelle. Le code accepte aussi l'ancien nom de liaison « icm_database ».
+[[d1_databases]]
+binding = "DB"
+database_name = "icm-database"
+database_id = "2575c2ea-92fd-4d60-bc40-ee9819d58216"
+
+# OPTIONNEL — purge quotidienne des conversations anciennes (RGPD). Décommentez, puis `npx wrangler deploy`.
+# Durée : variable RETENTION_DAYS (défaut 365, minimum 30).
+# [triggers]
+# crons = ["0 3 * * *"]
+#
+# OPTIONNEL — exiger la connexion sur les routes RAG (/ingest /list /delete /purge et chat) :
+#   [vars]
+#   RAG_REQUIRE_AUTH = "1"
+# (défaut : désactivé, comportement historique inchangé.)
+#
+# OPTIONNEL — restreindre CORS à votre front (une ou plusieurs origines, séparées par des virgules) :
+#   [vars]
+#   ALLOWED_ORIGIN = "https://icm-app.pages.dev"
+# (défaut : absent → « * », comportement historique inchangé.)
+#
+# Supervision : GET /api/health (200 = D1, IA, Vectorize et AUTH_SECRET prêts ; 503 sinon).
+
+# Secret de signature des sessions (NE PAS le mettre dans ce fichier) :
+#   npx wrangler secret put AUTH_SECRET

@@ -1,0 +1,28 @@
+const I = {
+  chat:'<path d="M8 9h8M8 13h6M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3z"/>',
+  search:'<circle cx="10" cy="10" r="7"/><path d="M21 21l-6 -6"/>',
+  cr:'<path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2M9 3h6v4h-6zM9 12h6M9 16h4"/>',
+  tree:'<path d="M9 4h6v4h-6zM3 16h6v4h-6zM15 16h6v4h-6zM12 8v4M6 16v-4h12v4"/>',
+  up:'<path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2M7 9l5 -5l5 5M12 4v12"/>',
+  val:'<path d="M7 12l5 5l10 -10M2 12l5 5m5 -5l5 -5"/>',
+  chart:'<path d="M3 3v18h18M8 16v-4M12 16v-8M16 16v-6"/>',
+  hist:'<path d="M12 8v4l2 2M3.05 11a9 9 0 1 1 .5 4M3 20v-5h5"/>',
+  usr:'<circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2M16 3.13a4 4 0 0 1 0 7.75M21 21v-2a4 4 0 0 0 -3 -3.85"/>',
+  plug:'<path d="M9.8 6l8.2 8.2l-2 2.1a5.8 5.8 0 1 1 -8.3 -8.3zM4 20l3.5 -3.5M15 4l-3.5 3.5M20 9l-3.5 3.5"/>',
+  spark:'<path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1 -2.1M16.3 7.7l2.1 -2.1"/>',
+  out:'<path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2M9 12h12l-3 -3M18 15l3 -3"/>',
+  down:'<path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2M7 11l5 5l5 -5M12 4v12"/>',
+  eye:'<path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"/>',
+  send:'<path d="M10 14l11 -11M21 3l-6.5 18a.55 .55 0 0 1 -1 0l-3.5 -7l-7 -3.5a.55 .55 0 0 1 0 -1l18 -6.5"/>',
+  check:'<path d="M5 12l5 5l10 -10"/>', x:'<path d="M18 6l-12 12M6 6l12 12"/>',
+  edit:'<path d="M4 20h4l10.5 -10.5a2.8 2.8 0 1 0 -4 -4l-10.5 10.5v4M13.5 6.5l4 4"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>', trash:'<path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12M9 7v-3h6v3"/>',
+  lock:'<path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2zM8 11v-4a4 4 0 1 1 8 0v4"/>',
+  info:'<path d="M12 9h.01M11 12h1v4h1"/><circle cx="12" cy="12" r="9"/>',
+  file:'<path d="M14 3v4a1 1 0 0 0 1 1h4M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/>',
+  bulb:'<path d="M9 16a5 5 0 1 1 6 0a3.5 3.5 0 0 0 -1 3a2 2 0 0 1 -4 0a3.5 3.5 0 0 0 -1 -3M9.7 17h4.6"/>',
+  layers:'<path d="M12 4l-8 4l8 4l8 -4l-8 -4M4 12l8 4l8 -4M4 16l8 4l8 -4"/>',
+  mic:'<path d="M9 5a3 3 0 0 1 6 0v5a3 3 0 0 1 -6 0zM5 10a7 7 0 0 0 14 0M8 21h8M12 17v4"/>',
+  xls:'<path d="M14 3v4a1 1 0 0 0 1 1h4M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2zM10 12l4 5M10 17l4 -5"/>'
+};
+export const ic = (n, s = 20) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]}</svg>`;

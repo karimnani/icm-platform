@@ -1,0 +1,5 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions     # garde les actions du pipeline à jour (PR hebdomadaire, soumise à la CI)
+    directory: /
+    schedule: { interval: weekly }

@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ICM · Gestion documentaire RAG</title>
+<link rel="stylesheet" href="./css/ingest-standalone.css">
+<link rel="stylesheet" href="./src/features/ingestion/styles.css">
+</head><body>
+<main class="icm-ingest">
+  <h1>ICM · Gestion documentaire RAG (Serveur Central)</h1>
+
+  <section class="ii-card"><h2 class="ii-title">Configuration & Projet</h2>
+    <label class="ii-label">Adresse du Worker<input class="ii-input" id="url" value="https://icm-maser.rag-tech.workers.dev"></label>
+    <label class="ii-label">Projet actif<select class="ii-input" id="proj"><option value="lyon">Usine de Lyon (lyon)</option><option value="grenoble">Usine de Grenoble (grenoble)</option></select></label>
+  </section>
+
+  <div id="ingestion-root"></div>
+</main>
+<script type="module" src="./src/standalone/ingest-main.js"></script>
+</body></html>

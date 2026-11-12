@@ -1,0 +1,72 @@
+# Retour arrière manuel (soumis à la même validation humaine « production »).
+#  - Worker : revient à la version précédente (ou à celle indiquée) via `wrangler rollback`.
+#  - Application : redéploie le commit/tag indiqué (Pages ne garde pas de « version précédente » automatique).
+name: Retour arrière
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Commit ou tag sain à redéployer pour l'application (laisser vide = ne pas toucher à l'application)"
+        type: string
+        default: ""
+      worker_version:
+        description: "Worker : identifiant de version (wrangler deployments list). Vide = version précédente. « non » = ne pas toucher au Worker"
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  APP_DIR: icm-rag
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+
+      - name: Worker — retour arrière
+        if: inputs.worker_version != 'non'
+        working-directory: ${{ env.APP_DIR }}/worker
+        env:
+          WORKER_VERSION: ${{ inputs.worker_version }}     # passée par l'environnement, jamais interpolée dans le shell
+          ACTOR: ${{ github.actor }}
+        run: |
+          case "$WORKER_VERSION" in *[!0-9a-fA-F-]*) echo "::error::Identifiant de version invalide"; exit 1;; esac
+          npx --yes wrangler@3 rollback $WORKER_VERSION --yes --message "Retour arrière manuel par $ACTOR"
+
+      - name: Application — redéployer ${{ inputs.ref }}
+        if: inputs.ref != ''
+        working-directory: ${{ env.APP_DIR }}
+        run: node scripts/stamp-sw.mjs "$(git rev-parse HEAD)" web/sw.js
+
+      - uses: cloudflare/wrangler-action@v3
+        if: inputs.ref != ''
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: ${{ env.APP_DIR }}
+          command: pages deploy web --project-name=${{ vars.PAGES_PROJECT || 'icm-app' }} --branch=main --commit-dirty=true
+
+      - name: Test de fumée
+        working-directory: ${{ env.APP_DIR }}
+        env:
+          WORKER_URL: ${{ vars.WORKER_URL }}
+          PAGES_URL: ${{ vars.PAGES_URL }}
+          SMOKE_EMAIL: ${{ secrets.SMOKE_EMAIL }}
+          SMOKE_PASSWORD: ${{ secrets.SMOKE_PASSWORD }}
+        run: node scripts/smoke.mjs

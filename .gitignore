@@ -1,0 +1,24 @@
+﻿# Dépendances (lourdes, réinstallables)
+node_modules/
+*/node_modules/
+.npm/
+
+# Fichiers d'environnement & Secrets Cloudflare (CRITIQUE : JAMAIS SUR GIT)
+.dev.vars
+.wrangler/
+*/.wrangler/
+.env
+.env.*
+*.pem
+
+# Système et éditeurs
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs et sorties de build
+npm-debug.log*
+yarn-debug.log*
+dist/
+build/

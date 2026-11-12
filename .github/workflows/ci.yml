@@ -1,0 +1,69 @@
+# Intégration continue — s'exécute sur chaque Pull Request, chaque push hors `main`, et en amont de tout déploiement (appelé par deploy.yml).
+# Pour bloquer les fusions fautives : Settings → Branches → règle sur `main` → « Require status checks » → cochez « CI ok ».
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches-ignore: [main]
+  workflow_call:
+
+permissions:
+  contents: read
+
+env:
+  APP_DIR: icm-rag          # dossier de l'application dans le dépôt ('.' si le dépôt GitHub EST le dossier icm-rag)
+
+jobs:
+  # ── Point de contrôle 1 : cohérence du dépôt (service worker, icônes, migrations, secrets, liaisons wrangler) et architecture (couches)
+  coherence:
+    name: Cohérence du dépôt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm run check          # cohérence du dépôt + règles d'architecture
+        working-directory: ${{ env.APP_DIR }}
+
+  # ── Point de contrôle 2 : tests (Worker : API, RAG, SQL réel · Front : écrans, API de bout en bout · Pipeline : migrations, smoke)
+  worker:
+    name: Tests Worker
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm test
+        working-directory: ${{ env.APP_DIR }}/worker
+
+  web:
+    name: Tests Front
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm test
+        working-directory: ${{ env.APP_DIR }}/web
+
+  pipeline:
+    name: Tests du pipeline
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm run test:scripts
+        working-directory: ${{ env.APP_DIR }}
+
+  # Résultat unique à exiger dans la protection de branche.
+  ci-ok:
+    name: CI ok
+    if: always()
+    needs: [coherence, worker, web, pipeline]
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo '${{ toJSON(needs) }}'
+          test "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" = "false"

@@ -1,0 +1,183 @@
+# Déploiement continu : chaque push sur `main` met l'application à jour (Worker + Pages + base D1) APRÈS franchissement de 5 points de contrôle.
+#
+#   ① CI complète (cohérence, tests Worker/Front/Pipeline)        automatique, bloquant
+#   ② Préparation : quoi déployer, migrations en attente           automatique, bloquant (secrets présents ?)
+#   ③ Validation humaine (environnement « production »)            manuelle — relecteurs à définir dans Settings → Environments
+#   ④ Migrations D1 → Worker → Application (cache PWA estampillé)  automatique, dans cet ordre, uniquement ce qui a changé
+#   ⑤ Test de fumée sur l'URL réelle ; en cas d'échec, retour arrière automatique du Worker
+name: Déploiement
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      force_all:
+        description: "Déployer Worker ET application même sans changement"
+        type: boolean
+        default: false
+      skip_migrations:
+        description: "Ne pas appliquer les migrations D1"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# Un seul déploiement à la fois ; un déploiement en cours n'est jamais interrompu par un autre.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  APP_DIR: icm-rag
+
+jobs:
+  # ① ───────────────────────────────────────────────────────────────
+  verify:
+    name: ① CI complète
+    uses: ./.github/workflows/ci.yml
+
+  # ② ───────────────────────────────────────────────────────────────
+  prepare:
+    name: ② Préparation
+    needs: verify
+    runs-on: ubuntu-latest
+    outputs:
+      worker: ${{ steps.scope.outputs.worker }}
+      web: ${{ steps.scope.outputs.web }}
+      pending: ${{ steps.mig.outputs.pending }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+
+      - name: Secrets et variables requis
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WORKER_URL: ${{ vars.WORKER_URL }}
+          PAGES_URL: ${{ vars.PAGES_URL }}
+        run: |
+          missing=""
+          for v in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID WORKER_URL PAGES_URL; do
+            [ -n "${!v}" ] || missing="$missing $v"
+          done
+          if [ -n "$missing" ]; then echo "::error::Configuration GitHub incomplète, à renseigner :$missing (voir docs/PIPELINE.md §2)"; exit 1; fi
+
+      - name: Périmètre du déploiement (ce qui a réellement changé)
+        id: scope
+        run: |
+          base="${{ github.event.before }}"
+          if [ "${{ inputs.force_all }}" = "true" ] || [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$base" 2>/dev/null; then
+            w=true; f=true
+          else
+            changed="$(git diff --name-only "$base" "${{ github.sha }}")"
+            w=false; f=false
+            echo "$changed" | grep -qE "^${APP_DIR}/worker/(src|schema\.sql|migrations|wrangler\.toml)" && w=true
+            echo "$changed" | grep -qE "^${APP_DIR}/web/" && f=true
+          fi
+          echo "worker=$w" >> "$GITHUB_OUTPUT"; echo "web=$f" >> "$GITHUB_OUTPUT"
+
+      - name: Migrations D1 en attente (simulation, rien n'est écrit)
+        id: mig
+        working-directory: ${{ env.APP_DIR }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE: ${{ vars.D1_DATABASE }}
+        run: |
+          out="$(node scripts/migrate.mjs --dry-run | tail -1)"; echo "$out"
+          echo "pending=${out#À appliquer : }" >> "$GITHUB_OUTPUT"
+
+      - name: Récapitulatif pour le relecteur
+        run: |
+          {
+            echo "## Déploiement de \`${GITHUB_SHA::7}\`"
+            echo "| | |"; echo "|---|---|"
+            echo "| Worker | ${{ steps.scope.outputs.worker == 'true' && '✅ sera déployé' || '— inchangé' }} |"
+            echo "| Application (Pages) | ${{ steps.scope.outputs.web == 'true' && '✅ sera déployée' || '— inchangée' }} |"
+            echo "| Migrations D1 | ${{ steps.mig.outputs.pending }} |"
+            echo; echo "**Approuvez le déploiement dans l'onglet de cette exécution (environnement \`production\`).**"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ③ + ④ + ⑤ ──────────────────────────────────────────────────────
+  deploy:
+    name: ③④⑤ Validation, déploiement, contrôle
+    needs: prepare
+    if: needs.prepare.outputs.worker == 'true' || needs.prepare.outputs.web == 'true'
+    runs-on: ubuntu-latest
+    environment:                       # ③ relecteurs obligatoires configurés sur cet environnement = validation humaine
+      name: production
+      url: ${{ vars.PAGES_URL }}
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      D1_DATABASE: ${{ vars.D1_DATABASE }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+
+      # ④a — la base d'abord : les migrations sont additives, l'ancien Worker continue donc de fonctionner pendant la bascule.
+      - name: Migrations D1
+        if: needs.prepare.outputs.pending != 'rien' && inputs.skip_migrations != true
+        working-directory: ${{ env.APP_DIR }}
+        run: node scripts/migrate.mjs
+
+      # ④b — le Worker, avant l'application (le front neuf appelle les routes neuves).
+      - name: Déployer le Worker
+        id: worker
+        if: needs.prepare.outputs.worker == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: ${{ env.APP_DIR }}/worker
+          command: deploy
+
+      # ④c — l'application ; le cache du service worker porte le commit : les navigateurs se mettent à jour.
+      - name: Estampiller le cache PWA
+        if: needs.prepare.outputs.web == 'true'
+        working-directory: ${{ env.APP_DIR }}
+        run: node scripts/stamp-sw.mjs "${{ github.sha }}" web/sw.js
+
+      - name: Déployer l'application (Cloudflare Pages)
+        if: needs.prepare.outputs.web == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: ${{ env.APP_DIR }}
+          command: pages deploy web --project-name=${{ vars.PAGES_PROJECT || 'icm-app' }} --branch=main --commit-hash=${{ github.sha }} --commit-dirty=true
+
+      # ⑤ — contrôle sur l'URL réelle (le cache CDN peut mettre quelques secondes : 3 tentatives).
+      - name: Test de fumée
+        id: smoke
+        working-directory: ${{ env.APP_DIR }}
+        env:
+          WORKER_URL: ${{ vars.WORKER_URL }}
+          PAGES_URL: ${{ vars.PAGES_URL }}
+          EXPECT_SHA: ${{ needs.prepare.outputs.web == 'true' && github.sha || '' }}
+          SMOKE_EMAIL: ${{ secrets.SMOKE_EMAIL }}
+          SMOKE_PASSWORD: ${{ secrets.SMOKE_PASSWORD }}
+        run: |
+          for i in 1 2 3; do
+            node scripts/smoke.mjs && exit 0
+            echo "Tentative $i/3 échouée — nouvelle tentative dans 20 s"; sleep 20
+          done
+          exit 1
+
+      # Retour arrière automatique du Worker si le contrôle échoue (les migrations, additives, restent en place).
+      - name: Retour arrière du Worker
+        if: failure() && steps.smoke.outcome == 'failure' && steps.worker.outcome == 'success'
+        working-directory: ${{ env.APP_DIR }}/worker
+        run: |
+          npx --yes wrangler@3 rollback --yes --message "Retour automatique : test de fumée échoué (${GITHUB_SHA::7})" \
+            && echo "::warning::Worker ramené à la version précédente. L'application (Pages) n'est PAS revenue en arrière : lancez le workflow « Retour arrière » si nécessaire."
+
+      - name: Résultat
+        if: always()
+        run: |
+          echo "### Résultat : ${{ job.status }}" >> "$GITHUB_STEP_SUMMARY"

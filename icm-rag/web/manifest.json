@@ -1,0 +1,14 @@
+{
+  "name": "ICM",
+  "short_name": "ICM",
+  "description": "Assistant IA de maintenance et base de connaissances, synchronisés en temps réel",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f6f8fa",
+  "theme_color": "#034d8f",
+  "icons": [
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

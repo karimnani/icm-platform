@@ -1,0 +1,10 @@
+{
+  "name": "icm-rag",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node scripts/check-repo.mjs && node scripts/check-architecture.mjs",
+    "test:scripts": "node --test \"scripts/*.test.js\"",
+    "test": "npm run check && npm run test:scripts && npm --prefix worker test && npm --prefix web test"
+  }
+}
