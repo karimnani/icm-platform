@@ -14,8 +14,8 @@ import { fileURLToPath } from 'node:url';
 
 /** Découpe un script SQL en instructions (commentaires `--` retirés). */
 export const splitSql = (sql) => sql.split('\n').filter((l) => !/^\s*--/.test(l)).join('\n').split(/;\s*(?:\n|$)/).map((s) => s.trim()).filter(Boolean);
-const ALREADY = /duplicate column name|already exists/i;
-
+// const ALREADY = /duplicate column name|already exists/i;
+const ALREADY = /duplicate column name|already exists|code["':\s]+7500|duplicate/i;
 export async function migrate({ exec, files, dryRun = false, log = () => {} }) {
   await exec('CREATE TABLE IF NOT EXISTS _migrations (name TEXT PRIMARY KEY, applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, baseline INTEGER DEFAULT 0)');
   const done = new Set((await exec('SELECT name FROM _migrations')).map((r) => r.name));
