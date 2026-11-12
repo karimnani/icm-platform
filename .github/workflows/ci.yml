@@ -20,7 +20,7 @@ jobs:
     name: Cohérence du dépôt
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - run: npm run check          # cohérence du dépôt + règles d'architecture
@@ -31,7 +31,7 @@ jobs:
     name: Tests Worker
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - run: npm test
@@ -41,7 +41,7 @@ jobs:
     name: Tests Front
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - run: npm test
@@ -51,7 +51,7 @@ jobs:
     name: Tests du pipeline
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - run: npm run test:scripts
