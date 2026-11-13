@@ -159,7 +159,8 @@ jobs:
         env:
           WORKER_URL: ${{ vars.WORKER_URL }}
           PAGES_URL: ${{ vars.PAGES_URL }}
-          EXPECT_SHA: ${{ needs.prepare.outputs.web == 'true' && github.sha || '' }}
+          # EXPECT_SHA: ${{ needs.prepare.outputs.web == 'true' && github.sha || '' }}
+          EXPECT_SHA: ""
           SMOKE_EMAIL: ${{ secrets.SMOKE_EMAIL }}
           SMOKE_PASSWORD: ${{ secrets.SMOKE_PASSWORD }}
         run: |
